@@ -15,7 +15,7 @@ func (s *GameServer) HandleJoin(p *Player, req *msg.BodyReq) {
 	_ = p.SendResponse(req, rsp, WithErrorMsg(err))
 
 	if s.room.GetPlayerCount() == config.GameCfg.MaxPlayerCount {
-		//s.room.gameStart()
+		s.room.gameStart()
 	}
 
 }
@@ -89,7 +89,7 @@ func (s *GameServer) onPlayerOffline(p *Player) {
 	if s.room.IsInRoom(p) {
 		_ = s.room.LeaveRoom(p)
 		if s.room.GetPlayerCount() == config.GameCfg.MaxPlayerCount-1 {
-			//s.room.gameEnd()
+			s.room.gameEnd()
 		}
 	}
 }

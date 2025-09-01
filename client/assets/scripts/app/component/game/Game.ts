@@ -2,7 +2,7 @@ import { _decorator, Component, Node, Prefab } from 'cc';
 import ModelManager from '../../manager/ModelManager';
 import GameConnectModel from '../../model/GameConnectModel';
 import CommonFunc from '../../common/CommonFunc';
-import proto from "../../network/proto/proto.js"
+import proto, { gameconfig } from "../../network/proto/proto.js"
 import GameModel from '../../model/GameModel';
 import { EventDef } from '../../define/EventDef';
 
@@ -42,6 +42,8 @@ export class Game extends Component {
     registerNetHandler() {
         GameConnectModel.registerNotifyHandler(proto.msg.MsgId.MID_NTF_JOIN, this.onNtfJoinRoom);
         GameConnectModel.registerNotifyHandler(proto.msg.MsgId.MID_NTF_QUIT, this.onNtfQuitRoom);
+        GameConnectModel.registerNotifyHandler(proto.msg.MsgId.MID_NTF_GAME_START, this.onNtfGameStart);
+        GameConnectModel.registerNotifyHandler(proto.msg.MsgId.MID_NTF_GAME_END, this.onNtfGameEnd);
         GameConnectModel.registerNotifyHandler(proto.msg.MsgId.MID_NTF_OPERATE, this.onNtfOperate);
     }
 

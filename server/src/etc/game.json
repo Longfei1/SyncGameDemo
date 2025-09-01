@@ -1,5 +1,5 @@
 {
-  "playerCount": 2,
+  "maxPlayerCount": 2,
   "mode": 0,
   "frameCount": 20,
   "mapWidth": 1280,

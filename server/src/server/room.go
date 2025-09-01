@@ -163,7 +163,7 @@ func (r *Room) updateFrame() {
 	}
 
 	//同步操作
-	ntf := msg.BodyRsp_OperateNtf{OperateNtf: &msg.OperateNtf{
+	ntf := &msg.BodyRsp_OperateNtf{OperateNtf: &msg.OperateNtf{
 		FrameNo: r.frameNo,
 		Op:      r.frameRecord[r.frameNo],
 	}}
@@ -175,12 +175,12 @@ func (r *Room) gameStart() {
 		r.startFrameSyncTimer()
 	}
 
-	r.NtfMsg(msg.MsgId_MID_NTF_GAME_START, msg.BodyRsp_GameStartNtf{GameStartNtf: &msg.GameStartNtf{}}, nil)
+	r.NtfMsg(msg.MsgId_MID_NTF_GAME_START, &msg.BodyRsp_GameStartNtf{GameStartNtf: &msg.GameStartNtf{}}, nil)
 }
 
 func (r *Room) gameEnd() {
 	if config.IsFrameSync() {
 		r.stopFrameSyncTimer()
 	}
-	r.NtfMsg(msg.MsgId_MID_NTF_GAME_END, msg.BodyRsp_GameStartNtf{GameStartNtf: &msg.GameStartNtf{}}, nil)
+	r.NtfMsg(msg.MsgId_MID_NTF_GAME_END, &msg.BodyRsp_GameEndNtf{GameEndNtf: &msg.GameEndNtf{}}, nil)
 }
