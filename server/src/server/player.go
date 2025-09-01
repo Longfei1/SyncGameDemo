@@ -49,6 +49,7 @@ func (p *Player) SendMsg(id msg.MsgId, rsp interface{}, option ...MsgOption) err
 		rv := reflect.ValueOf(rspBody)
 		rvBody := rv.Elem().FieldByName("Body")
 		if !reflect.TypeOf(rsp).Implements(rvBody.Type()) {
+			p.Logger().Error().Msg("send msg failed, rsp not oneof msg.Body")
 			return fmt.Errorf("require oneof msg.Body")
 		}
 
