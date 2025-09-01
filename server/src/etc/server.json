@@ -1,0 +1,8 @@
+{
+  "ip": "127.0.0.1",
+  "port": 8888,
+  "logLevel": 0,
+  "logPath": "logs",
+  "logFile": "server.log",
+  "timerMinMs": 10
+}

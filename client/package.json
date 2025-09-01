@@ -1,0 +1,10 @@
+{
+  "name": "client",
+  "uuid": "1617307f-5218-42cf-b73e-9fecf6310602",
+  "creator": {
+    "version": "3.8.6"
+  },
+  "dependencies": {
+    "protobufjs": "^7.5.3"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "playerCount": 2,
+  "mode": 0,
+  "frameCount": 20,
+  "mapWidth": 1280,
+  "mapHeight": 720,
+  "playerWidth": 40,
+  "playerHeight": 40,
+  "playerSpeed": 0.06,
+  "playerPos": [
+    {
+      "x": 320,
+      "y": 0
+    },
+    {
+      "x": 960,
+      "y": 0
+    }
+  ],
+  "playerColor": [
+    {
+      "r": 255,
+      "g": 0,
+      "b": 0
+    },
+    {
+      "r": 0,
+      "g": 0,
+      "b": 255
+    }
+  ]
+}

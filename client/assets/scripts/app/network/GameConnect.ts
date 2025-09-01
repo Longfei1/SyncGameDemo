@@ -1,0 +1,270 @@
+import { game } from "cc";
+import { GameConfig } from "../GameConfig";
+import CommonFunc from "../common/CommonFunc";
+import { WSConnect } from "./WebSocket"
+import proto from "./proto/proto.js"
+
+const PLUSE_INTERVAL = 30;//心跳发送间隔时长
+const TIME_REQUEST_TIMEOUT = 5;//消息发送超时时间
+
+class RequestMsg {
+    needEcho: boolean = false;
+    data: proto.msg.IBodyReq = null;
+    handler: Function = null;
+}
+
+export class GameConnect {
+    private _socket: WSConnect = null;
+
+    private _sequence: number = 0;//消息序列号
+    private _waitResponse: boolean = false;//是否在等待回应
+    private _waitSequence: number = -1;//等待回应的序列号
+    private _requestQueue: RequestMsg[] = [];//请求队列
+    private _responseHandler: Function = null;//响应回调函数
+
+    private _notifyHandler: { [requestid: number]: Function } = {};//通知处理函数
+
+    private _pluseTimer = null;//心跳定时器
+
+    private _timeOutHandler = null;//超时处理函数
+    private _timeOutTimer = null;//超时检测定时器
+
+    constructor(name: string) {
+        if (this.isNetSupported()) {
+            this._socket = new WSConnect(name, false);
+
+            this._socket.setMessageHandler((data) => {
+                this.onMessage(data);
+            });
+        }
+        else {
+            console.log("not support websocket!")
+        }
+    }
+
+    //清空数据
+    clearData() {
+        this._sequence = 0;
+        this._waitResponse = false;
+        this._waitSequence = -1;
+        this._requestQueue = [];
+        this._responseHandler = null;
+
+        this.stopPluseTimer();
+        this.stopTimeOutTimer();
+    }
+
+    setSocketErrorHandler(handler: Function) {
+        if (this._socket) {
+            this._socket.setSocketErrorHandler(() => {
+                if (handler) {
+                    handler();
+                }
+
+                this.clearData();
+            });
+        }
+    }
+
+    setTimeOutHandler(handler: Function) {
+        this._timeOutHandler = handler;
+    }
+
+    isNetSupported(): boolean {
+        if ("WebSocket" in window) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    isConnecting(): boolean {
+        if (this._socket) {
+            return this._socket.isConnecting();
+        }
+        return false;
+    }
+
+    isConnected(): boolean {
+        if (this._socket) {
+            return this._socket.isConnected();
+        }
+        return false;
+    }
+
+    addNotifyHandler(requestID: number, handler: Function) {
+        this._notifyHandler[requestID] = handler;
+    }
+
+    connect(serverIP: string, serverPort: number, callback: Function) {
+        if (!this.isConnected()) {
+            if (this._socket) {
+                this._socket.connect(serverIP, serverPort, (ret) => {
+                    if (callback) {
+                        callback(ret);
+                    }
+                    if (ret) {
+                        this.sendRequestInQueue();
+                        this.startPluseTimer();
+                    }
+                    else {
+                        this.clearData();
+                    }
+                });
+            }
+        }
+    }
+
+    disconnect() {
+        if (this._socket) {
+            this._socket.disconnect();
+        }
+        this.clearData();
+    }
+
+    sendRequest(reqData: proto.msg.IBodyReq, needResponse: boolean = false, responseHandler: Function = null) {
+        if (!this._socket) {
+            return;
+        }
+
+        if (!reqData) {
+            return
+        }
+
+        if (!this.isConnected() || this._waitResponse) {
+            let request: RequestMsg = {
+                needEcho: needResponse,
+                data: reqData,
+                handler: responseHandler,
+            };
+            
+            this.pushRequestToQueue(request);
+            return;
+        }
+
+        reqData.seq = this._sequence
+        
+        if (needResponse) {
+            this._waitResponse = true;
+            this._waitSequence = reqData.seq;
+            this._responseHandler = responseHandler;
+        }
+        this._sequence++;
+        
+        let dataEncode = CommonFunc.pbEncode(reqData, proto.msg.BodyReq)
+
+        if (GameConfig.netDelayMs > 0) {
+            setTimeout(() => {
+                this._socket.sendData(dataEncode);
+            }, GameConfig.netDelayMs)
+        } else {
+            this._socket.sendData(dataEncode);
+        }
+
+        if (GameConfig.logNetMsg) {
+            console.debug(`${this._socket.tagPrefix()} sendRequest requestid(${proto.msg.MsgId[reqData.msgId]}})`);
+        }
+
+        if (needResponse) {
+            this.startTimeOutTimer();
+        }
+        else {
+            this.sendRequestInQueue();
+        }
+    }
+
+    private onMessage(data: ArrayBuffer) {
+        let dealFunc = () => {
+            let response: proto.msg.IBodyRsp = CommonFunc.pbDecode(data, proto.msg.BodyRsp)
+            if (this._waitResponse && this._waitSequence == response.seq) {
+                if (GameConfig.logNetMsg) {
+                    console.debug(`${this._socket.tagPrefix()} onResponse requestid(${proto.msg.MsgId[response.msgId]}})`);
+                }
+                this.stopTimeOutTimer();
+                
+                if (this._responseHandler) {
+                    this._responseHandler(response);
+                }
+
+                this._waitResponse = false;
+                this._waitSequence = -1;
+                this._responseHandler = null;
+
+                this.sendRequestInQueue();
+                return;
+            }
+
+            if (GameConfig.logNetMsg) {
+                console.debug(`${this._socket.tagPrefix()} onNotify requestid(${proto.msg.MsgId[response.msgId]})`);
+            }
+            if (this._notifyHandler[response.msgId]) {
+                this._notifyHandler[response.msgId](response);
+            }
+        }
+
+        if (GameConfig.netDelayMs > 0) {
+            setTimeout(() => {
+                dealFunc()
+            }, GameConfig.netDelayMs)
+        }
+        else {
+            dealFunc()
+        }
+    }
+
+    private pushRequestToQueue(request: RequestMsg) {
+        this._requestQueue.push(request);
+    }
+
+    private sendRequestInQueue() {
+        if (this._requestQueue.length > 0) {
+            let request = this._requestQueue[0];
+            this._requestQueue.splice(0, 1);
+
+            this.sendRequest(request.data, request.needEcho, request.handler);
+        }
+    }
+
+    private sendPluse() {
+        let req : proto.msg.IBodyReq = {msgId: proto.msg.MsgId.MID_REQ_CONNECT_PLUSE}
+        this.sendRequest(req);
+    }
+
+    private startPluseTimer() {
+        this.stopPluseTimer();
+        this._pluseTimer = setInterval(() => {
+            this.sendPluse();
+        }, PLUSE_INTERVAL * 1000);
+    }
+
+    private stopPluseTimer() {
+        if (this._pluseTimer) {
+            clearInterval(this._pluseTimer);
+            this._pluseTimer = null;
+        }
+    }
+
+    private startTimeOutTimer() {
+        this.stopTimeOutTimer();
+        this._timeOutTimer = setInterval(() => {
+            this.onRequestTimeOut();
+        }, TIME_REQUEST_TIMEOUT * 1000);
+    }
+
+    private stopTimeOutTimer() {
+        if (this._timeOutTimer) {
+            clearInterval(this._timeOutTimer);
+            this._timeOutTimer = null;
+        }
+    }
+
+    private onRequestTimeOut() {
+        this.stopTimeOutTimer();
+
+        //请求超时时，只触发超时回调。（暂时设计为：不调用超时消息对应的回调函数，外部直接进行重连操作）
+        if (this._timeOutHandler) {
+            this._timeOutHandler();
+        }
+    }
+}

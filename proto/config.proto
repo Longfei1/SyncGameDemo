@@ -1,0 +1,32 @@
+syntax = "proto3";
+package gameconfig;
+option go_package = "server/msg";
+
+enum SyncMode {
+    SM_FRAME = 0; //帧同步
+    SM_STATE = 1; //状态同步
+}
+
+message PositionInfo {
+    uint32 x = 1;
+    uint32 y = 2;    
+}
+
+message ColorInfo {
+    uint32 r = 1;
+    uint32 g = 2;    
+    uint32 b = 3;    
+}
+
+message GameConfig {
+    uint32 maxPlayerCount = 1;
+	SyncMode mode = 2;
+	uint32 frameCount = 3;
+    uint32 mapWidth = 4;
+    uint32 mapHeight = 5;
+    uint32 playerWidth = 6;
+    uint32 playerHeight = 7;
+    uint32 playerSpeed = 8;
+    repeated PositionInfo playerPos = 9;
+    repeated ColorInfo playerColor = 10;
+}

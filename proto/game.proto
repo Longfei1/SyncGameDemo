@@ -1,0 +1,138 @@
+syntax = "proto3";
+package msg;
+option go_package = "server/msg";
+
+import "config.proto";
+
+enum MsgId {
+    MID_NULL = 0;
+    MID_REQ_CONNECT_PLUSE = 10001; //心跳
+    MID_RSP_CONNECT_PLUSE = 20001; //心跳
+    MID_REQ_JOIN = 11001; //加入
+    MID_RSP_JOIN = 21001; //加入
+    MID_REQ_QUIT = 11002; //退出
+    MID_RSP_QUIT = 21002; //退出
+    MID_REQ_OPERATE = 11003; //操作
+    MID_RSP_OPERATE = 21003; //操作
+
+    MID_NTF_JOIN = 50001; //加入房间
+    MID_NTF_QUIT = 50002; //退出房间
+    MID_NTF_GAME_START = 50003; //游戏开始
+    MID_NTF_GAME_END = 50004; //游戏结束
+    MID_NTF_OPERATE = 51005; //操作
+}
+
+enum StatusCode {
+    SC_SUCCESS = 0;
+    SC_FAILED = 1;
+    SC_PARAM_ERROR = 2;
+    SC_CONFIG_ERROR = 3;
+    SC_ALEADY_IN_ROOM = 1000;
+    SC_ROOM_FULL = 1001; //房间已满
+}
+
+message PlayerInfo {
+    uint64 playerId = 1;
+    uint32 playerNo = 2;
+    gameconfig.PositionInfo pos = 3; //当前坐标
+    gameconfig.ColorInfo color = 4; //颜色信息
+    OperateDir moveDir = 5;
+}
+
+message CommonReq {
+
+}
+
+message CommonRsp {
+
+}
+
+message JoinReq {
+
+}
+
+message JoinRsp {
+    gameconfig.GameConfig gameCfg = 1;
+    uint64 roomId = 2;
+    uint64 myPlayerId = 3;
+    repeated PlayerInfo players = 4;
+}
+
+message JoinNtf {
+    PlayerInfo player = 1;
+}
+
+message QuitReq {
+
+}
+
+message QuitRsp {
+
+}
+
+message QuitNtf {
+    uint64 playerId = 1;
+}
+
+message GameStartNtf {
+    
+}
+
+message GameEndNtf {
+    
+}
+
+enum OperateDir {
+    OD_NULL = 0;
+    OD_UP = 1;
+    OD_DOWN = 2;
+    OD_LEFT = 3;
+    OD_RIGHT = 4;
+}
+
+message OperateInfo {
+    uint64 playerId = 1;
+    OperateDir dir = 2;
+}
+
+message OperateReq {
+    OperateInfo op = 1;
+}
+
+message OperateRsp {
+}
+
+message OperateNtf {
+    uint64 frameNo = 1;
+    repeated OperateInfo op = 2;
+}
+
+message BodyReq {
+    MsgId msgId = 1;
+    uint64 seq = 2;
+    bool needEcho = 3;
+    oneof Body {
+        CommonReq commonReq = 10;
+        JoinReq joinReq = 11;
+        QuitReq quitReq = 12;
+        OperateReq operateReq = 13;
+    }
+}
+
+message BodyRsp {
+    MsgId msgId = 1;
+    uint64 seq = 2;
+    StatusCode status = 3;
+    string errorMsg = 4;
+    oneof Body {
+        CommonRsp commonRsp = 10;
+        JoinRsp joinRsp = 11;
+        JoinNtf joinNtf = 12;
+        QuitRsp quitRsp = 13;
+        QuitNtf quitNtf = 14;
+        GameStartNtf gameStartNtf = 15;
+        GameEndNtf gameEndNtf = 16;
+        OperateRsp operateRsp = 17;
+        OperateNtf operateNtf = 18;
+    }
+}
