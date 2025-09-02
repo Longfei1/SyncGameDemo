@@ -39,7 +39,7 @@ func (s *GameServer) HandleQuit(p *Player, req *msg.BodyReq) {
 	_ = p.SendResponse(req, rsp, WithErrorMsg(err))
 
 	if s.room.GetPlayerCount() == config.GameCfg.MaxPlayerCount-1 {
-		//s.room.gameEnd()
+		s.room.gameEnd()
 	}
 }
 
@@ -77,6 +77,7 @@ func (s *GameServer) handlerOperate_(p *Player, req *msg.BodyReq) (rsp *msg.Body
 		}
 
 		p.operateInfo = op.Op
+		p.operateInfo.PlayerId = p.id
 	}
 
 	rsp = &msg.BodyRsp_OperateRsp{OperateRsp: &msg.OperateRsp{}}

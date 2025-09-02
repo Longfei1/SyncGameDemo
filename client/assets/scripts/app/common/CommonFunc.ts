@@ -88,7 +88,7 @@ export default class CommonFunc {
 
     static inputKey2OperateDir(k: KeyCode): proto.msg.OperateDir {
         if (k in InputKey2OperateDir) {
-            return InputKey2OperateDir[k]
+            return InputKey2OperateDir[k];
         }
         return proto.msg.OperateDir.OD_NULL;
     }

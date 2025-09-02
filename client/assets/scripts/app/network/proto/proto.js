@@ -667,7 +667,7 @@ $root.gameconfig = (function() {
             if (message.playerHeight != null && Object.hasOwnProperty.call(message, "playerHeight"))
                 writer.uint32(/* id 7, wireType 0 =*/56).uint32(message.playerHeight);
             if (message.playerSpeed != null && Object.hasOwnProperty.call(message, "playerSpeed"))
-                writer.uint32(/* id 8, wireType 0 =*/64).uint32(message.playerSpeed);
+                writer.uint32(/* id 8, wireType 1 =*/65).double(message.playerSpeed);
             if (message.playerPos != null && message.playerPos.length)
                 for (var i = 0; i < message.playerPos.length; ++i)
                     $root.gameconfig.PositionInfo.encode(message.playerPos[i], writer.uint32(/* id 9, wireType 2 =*/74).fork()).ldelim();
@@ -739,7 +739,7 @@ $root.gameconfig = (function() {
                         break;
                     }
                 case 8: {
-                        message.playerSpeed = reader.uint32();
+                        message.playerSpeed = reader.double();
                         break;
                     }
                 case 9: {
@@ -816,8 +816,8 @@ $root.gameconfig = (function() {
                 if (!$util.isInteger(message.playerHeight))
                     return "playerHeight: integer expected";
             if (message.playerSpeed != null && message.hasOwnProperty("playerSpeed"))
-                if (!$util.isInteger(message.playerSpeed))
-                    return "playerSpeed: integer expected";
+                if (typeof message.playerSpeed !== "number")
+                    return "playerSpeed: number expected";
             if (message.playerPos != null && message.hasOwnProperty("playerPos")) {
                 if (!Array.isArray(message.playerPos))
                     return "playerPos: array expected";
@@ -880,7 +880,7 @@ $root.gameconfig = (function() {
             if (object.playerHeight != null)
                 message.playerHeight = object.playerHeight >>> 0;
             if (object.playerSpeed != null)
-                message.playerSpeed = object.playerSpeed >>> 0;
+                message.playerSpeed = Number(object.playerSpeed);
             if (object.playerPos) {
                 if (!Array.isArray(object.playerPos))
                     throw TypeError(".gameconfig.GameConfig.playerPos: array expected");
@@ -946,7 +946,7 @@ $root.gameconfig = (function() {
             if (message.playerHeight != null && message.hasOwnProperty("playerHeight"))
                 object.playerHeight = message.playerHeight;
             if (message.playerSpeed != null && message.hasOwnProperty("playerSpeed"))
-                object.playerSpeed = message.playerSpeed;
+                object.playerSpeed = options.json && !isFinite(message.playerSpeed) ? String(message.playerSpeed) : message.playerSpeed;
             if (message.playerPos && message.playerPos.length) {
                 object.playerPos = [];
                 for (var j = 0; j < message.playerPos.length; ++j)

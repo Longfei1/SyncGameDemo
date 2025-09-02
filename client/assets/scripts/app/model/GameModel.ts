@@ -81,10 +81,13 @@ class GameModel extends BaseModel {
     }
 
     dealOperateNtfInfo(info: proto.msg.IOperateNtf) {
-        this.onLogicUpdate(info.op);
-
+        this.emit(EventDef.EV_GAME_LOGIC_UPDATE_BEFORE);
+        
         this._curFrameNo = info.frameNo;
         this._frameOperateInfo.set(info.frameNo, info.op);
+
+        this.onLogicUpdate(info.op);
+        this.emit(EventDef.EV_GAME_LOGIC_UPDATE_AFTER);
     }
 
     onLogicUpdate(op: proto.msg.IOperateInfo[]) {
@@ -134,10 +137,16 @@ class GameModel extends BaseModel {
                     break;
             }
         }
+    }
 
-        this.emit(EventDef.EV_GAME_LOGIC_UPDATE);
-
-        this.emit(EventDef.EV_GAME_OPE_UPLOAD);
+    getCurMoveDir(playerId: (number|Long)): proto.msg.OperateDir {
+        let op = this._frameOperateInfo.get(this._curFrameNo);
+        for (let it of op) {
+            if (it.playerId == playerId) {
+                return it.dir;
+            }
+        }
+        return proto.msg.OperateDir.OD_NULL;
     }
 
     isFrameSync() {

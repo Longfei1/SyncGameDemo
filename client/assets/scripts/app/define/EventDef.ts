@@ -5,6 +5,6 @@ export namespace EventDef {
 
     export const EV_GAME_START = "ev_game_start";
     export const EV_GAME_END = "ev_game_end";
-    export const EV_GAME_LOGIC_UPDATE = "ev_game_logic_update";
-    export const EV_GAME_OPE_UPLOAD = "ev_game_ope_upload";
+    export const EV_GAME_LOGIC_UPDATE_BEFORE = "ev_game_logic_update_before";
+    export const EV_GAME_LOGIC_UPDATE_AFTER = "ev_game_logic_update_before";
 }

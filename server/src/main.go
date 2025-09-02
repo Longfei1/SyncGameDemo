@@ -28,8 +28,8 @@ func main() {
 	// 设置lumberjack日志滚动对象
 	logger := &lumberjack.Logger{
 		Filename:   path.Join(config.ServerCfg.LogPath, config.ServerCfg.LogFile), // 日志文件路径
-		MaxSize:    10,                                                            // 最大文件大小（MB）
-		MaxBackups: 3,                                                             // 最多保留旧文件的数量
+		MaxSize:    200,                                                           // 最大文件大小（MB）
+		MaxBackups: 10,                                                            // 最多保留旧文件的数量
 		MaxAge:     30,                                                            // 最大文件保存天数
 		Compress:   true,                                                          // 是否压缩/归档旧文件
 	}

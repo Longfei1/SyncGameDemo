@@ -26,7 +26,7 @@ message GameConfig {
     uint32 mapHeight = 5;
     uint32 playerWidth = 6;
     uint32 playerHeight = 7;
-    uint32 playerSpeed = 8;
+    double playerSpeed = 8;
     repeated PositionInfo playerPos = 9;
     repeated ColorInfo playerColor = 10;
 }

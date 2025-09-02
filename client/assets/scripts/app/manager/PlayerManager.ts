@@ -1,4 +1,4 @@
-import { _decorator, Component, EventKeyboard, instantiate, KeyCode, Node, Prefab } from 'cc';
+import { _decorator, Component, EventKeyboard, instantiate, KeyCode, Node, Prefab, tween, Tween } from 'cc';
 import GameModel from '../model/GameModel';
 import { EventDef } from '../define/EventDef';
 import CommonFunc from '../common/CommonFunc';
@@ -6,6 +6,7 @@ import { Player } from '../component/game/Player';
 import { GameDef } from '../define/GameDef';
 import GameInputModel from '../model/GameInputModel';
 import GameConnectModel from '../model/GameConnectModel';
+import proto from "../network/proto/proto.js"
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerManager')
@@ -22,7 +23,8 @@ export class PlayerManager extends Component {
     onLoad() {
         GameModel.addEventListener(EventDef.EV_GAME_JOIN_ROOM, this.evJoinRoom, this);
         GameModel.addEventListener(EventDef.EV_GAME_QUIT_ROOM, this.evQuitRoom, this);
-        GameModel.addEventListener(EventDef.EV_GAME_OPE_UPLOAD, this.evUploadInput, this);
+        GameModel.addEventListener(EventDef.EV_GAME_LOGIC_UPDATE_BEFORE, this.evLogicUpdateBefore, this);
+        GameModel.addEventListener(EventDef.EV_GAME_LOGIC_UPDATE_BEFORE, this.evLogicUpdateAfter, this);
 
         GameInputModel.addKeyDownOnceListener(this.onInputKeyDown, this.onInputKeyUp, this);
         GameInputModel.addInputHierarchy(true, this);
@@ -42,16 +44,6 @@ export class PlayerManager extends Component {
         if (!GameModel._gameRunning) {
             return;
         } 
-
-        for (let plr of GameModel._players.values()) {
-            let node = this._nodePlayers.get(plr.gameInfo.playerId);
-            if (!node) {
-                continue;
-            }
-
-            //暂时实时同步逻辑帧位置
-            node.setPosition(CommonFunc.positionInfo2Vec3(plr.gameInfo.pos));
-        }
     }
 
     clearData() {
@@ -156,7 +148,43 @@ export class PlayerManager extends Component {
         this.removePlayer(id);
     }
 
-    evUploadInput() {
+    evLogicUpdateBefore() {
+        //设置当前位置
+        for (let plr of GameModel._players.values()) {
+            let node = this._nodePlayers.get(plr.gameInfo.playerId);
+            if (!node) {
+                continue;
+            }
+
+            //Tween.stopAllByTarget(node);
+            //node.setPosition(CommonFunc.positionInfo2Vec3(plr.gameInfo.pos));
+        }
+    }
+
+    evLogicUpdateAfter() {
+        let frameSec = 1 / (GameModel._gameCfg.frameCount - 1);
+
+        for (let plr of GameModel._players.values()) {
+            let node = this._nodePlayers.get(plr.gameInfo.playerId);
+            if (!node) {
+                continue;
+            }
+
+            let curPos = node.getPosition();
+            let nextPos = CommonFunc.positionInfo2Vec3(plr.gameInfo.pos);
+
+            if (curPos.x != nextPos.x || curPos.y != nextPos.y) {
+                tween(node)
+                .to(frameSec, {position: nextPos})
+                .start();
+            }
+        }
+
+
+        this.doUploadInput();
+    }
+
+    doUploadInput() {
         let inputInfo = this._curInputKey.get(GameModel._myPlayerId);
         let code = inputInfo.status;
         if (code == KeyCode.NONE) {
