@@ -4,4 +4,5 @@ export let GameConfig = {
     serverPort: 8888,//服务端口
     logNetMsg: true,
     netDelayMs: 200,
+    frameRate: 60,//渲染帧率
 }

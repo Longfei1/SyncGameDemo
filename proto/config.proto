@@ -29,4 +29,5 @@ message GameConfig {
     double playerSpeed = 8;
     repeated PositionInfo playerPos = 9;
     repeated ColorInfo playerColor = 10;
+    bool prediction = 11;
 }

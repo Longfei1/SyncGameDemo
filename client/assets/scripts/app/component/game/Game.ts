@@ -1,18 +1,16 @@
-import { _decorator, Component, Node, Prefab } from 'cc';
+import { _decorator, Component, Node, game } from 'cc';
 import ModelManager from '../../manager/ModelManager';
 import GameConnectModel from '../../model/GameConnectModel';
 import CommonFunc from '../../common/CommonFunc';
 import proto, { gameconfig } from "../../network/proto/proto.js"
 import GameModel from '../../model/GameModel';
 import { EventDef } from '../../define/EventDef';
+import { GameConfig } from '../../GameConfig';
 
 const { ccclass, property } = _decorator;
 
 @ccclass('Game')
 export class Game extends Component {
-    @property({ displayName: "玩家管理器", type: Component })
-    playerManager: Component = null;
-
     @property({ displayName: "加入按钮", type: Node })
     btnJoin: Node = null;
 
@@ -20,6 +18,8 @@ export class Game extends Component {
     btnQuit: Node = null;
 
     onLoad() {
+        game.frameRate = GameConfig.frameRate;
+
         ModelManager.initModels();
 
         this.registerNetHandler();

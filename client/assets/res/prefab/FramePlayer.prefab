@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "Player",
+    "_name": "FramePlayer",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Player",
+    "_name": "FramePlayer",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -521,7 +521,7 @@
     "nestedPrefabInstanceRoots": null
   },
   {
-    "__type__": "0a58c0ZxK1NypPTlEWxOHk9",
+    "__type__": "e9723TPsbNPoaQ9VqO+3Guq",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -545,7 +545,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "a0hVQ9TctLo7knZls3oMbz"
+    "fileId": "c2gz97QtlM/IVhvz/qGEQA"
   },
   {
     "__type__": "cc.PrefabInfo",

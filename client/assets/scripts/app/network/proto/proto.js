@@ -529,6 +529,7 @@ $root.gameconfig = (function() {
          * @property {number|null} [playerSpeed] GameConfig playerSpeed
          * @property {Array.<gameconfig.IPositionInfo>|null} [playerPos] GameConfig playerPos
          * @property {Array.<gameconfig.IColorInfo>|null} [playerColor] GameConfig playerColor
+         * @property {boolean|null} [prediction] GameConfig prediction
          */
 
         /**
@@ -629,6 +630,14 @@ $root.gameconfig = (function() {
         GameConfig.prototype.playerColor = $util.emptyArray;
 
         /**
+         * GameConfig prediction.
+         * @member {boolean} prediction
+         * @memberof gameconfig.GameConfig
+         * @instance
+         */
+        GameConfig.prototype.prediction = false;
+
+        /**
          * Creates a new GameConfig instance using the specified properties.
          * @function create
          * @memberof gameconfig.GameConfig
@@ -674,6 +683,8 @@ $root.gameconfig = (function() {
             if (message.playerColor != null && message.playerColor.length)
                 for (var i = 0; i < message.playerColor.length; ++i)
                     $root.gameconfig.ColorInfo.encode(message.playerColor[i], writer.uint32(/* id 10, wireType 2 =*/82).fork()).ldelim();
+            if (message.prediction != null && Object.hasOwnProperty.call(message, "prediction"))
+                writer.uint32(/* id 11, wireType 0 =*/88).bool(message.prediction);
             return writer;
         };
 
@@ -752,6 +763,10 @@ $root.gameconfig = (function() {
                         if (!(message.playerColor && message.playerColor.length))
                             message.playerColor = [];
                         message.playerColor.push($root.gameconfig.ColorInfo.decode(reader, reader.uint32()));
+                        break;
+                    }
+                case 11: {
+                        message.prediction = reader.bool();
                         break;
                     }
                 default:
@@ -836,6 +851,9 @@ $root.gameconfig = (function() {
                         return "playerColor." + error;
                 }
             }
+            if (message.prediction != null && message.hasOwnProperty("prediction"))
+                if (typeof message.prediction !== "boolean")
+                    return "prediction: boolean expected";
             return null;
         };
 
@@ -901,6 +919,8 @@ $root.gameconfig = (function() {
                     message.playerColor[i] = $root.gameconfig.ColorInfo.fromObject(object.playerColor[i]);
                 }
             }
+            if (object.prediction != null)
+                message.prediction = Boolean(object.prediction);
             return message;
         };
 
@@ -930,6 +950,7 @@ $root.gameconfig = (function() {
                 object.playerWidth = 0;
                 object.playerHeight = 0;
                 object.playerSpeed = 0;
+                object.prediction = false;
             }
             if (message.maxPlayerCount != null && message.hasOwnProperty("maxPlayerCount"))
                 object.maxPlayerCount = message.maxPlayerCount;
@@ -957,6 +978,8 @@ $root.gameconfig = (function() {
                 for (var j = 0; j < message.playerColor.length; ++j)
                     object.playerColor[j] = $root.gameconfig.ColorInfo.toObject(message.playerColor[j], options);
             }
+            if (message.prediction != null && message.hasOwnProperty("prediction"))
+                object.prediction = message.prediction;
             return object;
         };
 

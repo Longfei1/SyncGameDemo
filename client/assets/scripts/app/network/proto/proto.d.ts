@@ -253,6 +253,9 @@ export namespace gameconfig {
 
         /** GameConfig playerColor */
         playerColor?: (gameconfig.IColorInfo[]|null);
+
+        /** GameConfig prediction */
+        prediction?: (boolean|null);
     }
 
     /** Represents a GameConfig. */
@@ -293,6 +296,9 @@ export namespace gameconfig {
 
         /** GameConfig playerColor. */
         public playerColor: gameconfig.IColorInfo[];
+
+        /** GameConfig prediction. */
+        public prediction: boolean;
 
         /**
          * Creates a new GameConfig instance using the specified properties.

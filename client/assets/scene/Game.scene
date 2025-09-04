@@ -119,7 +119,6 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "playerManager": null,
     "btnJoin": {
       "__id__": 4
     },
@@ -1166,7 +1165,11 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "prefabPlayer": {
+    "prefabFramePlayer": {
+      "__uuid__": "f1e9d172-8a95-48e6-a4d1-62226aac9e71",
+      "__expectedType__": "cc.Prefab"
+    },
+    "prefabStatePlayer": {
       "__uuid__": "15f26bc9-9c19-4c55-9f7b-237a48c67c3f",
       "__expectedType__": "cc.Prefab"
     },

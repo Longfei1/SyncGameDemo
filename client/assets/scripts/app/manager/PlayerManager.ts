@@ -11,8 +11,11 @@ const { ccclass, property } = _decorator;
 
 @ccclass('PlayerManager')
 export class PlayerManager extends Component {
-    @property({ displayName: "玩家预制体", type: Prefab })
-    prefabPlayer: Prefab = null;
+    @property({ displayName: "帧同步玩家预制体", type: Prefab })
+    prefabFramePlayer: Prefab = null;
+
+    @property({ displayName: "状态同步玩家预制体", type: Prefab })
+    prefabStatePlayer: Prefab = null;
 
     @property({ displayName: "玩家层级", type: Node })
     panelPlayer: Node = null;
@@ -23,7 +26,6 @@ export class PlayerManager extends Component {
     onLoad() {
         GameModel.addEventListener(EventDef.EV_GAME_JOIN_ROOM, this.evJoinRoom, this);
         GameModel.addEventListener(EventDef.EV_GAME_QUIT_ROOM, this.evQuitRoom, this);
-        GameModel.addEventListener(EventDef.EV_GAME_LOGIC_UPDATE_BEFORE, this.evLogicUpdateBefore, this);
         GameModel.addEventListener(EventDef.EV_GAME_LOGIC_UPDATE_BEFORE, this.evLogicUpdateAfter, this);
 
         GameInputModel.addKeyDownOnceListener(this.onInputKeyDown, this.onInputKeyUp, this);
@@ -49,6 +51,13 @@ export class PlayerManager extends Component {
     clearData() {
         this._nodePlayers.clear();
         this._curInputKey.clear();
+    }
+
+    getPlayerPrefab(): Prefab {
+        if (GameModel._gameCfg && GameModel._gameCfg.mode == proto.gameconfig.SyncMode.SM_STATE) {
+            return this.prefabStatePlayer;
+        }
+        return this.prefabFramePlayer;
     }
 
     onInputKeyDown(event: EventKeyboard) {
@@ -113,16 +122,15 @@ export class PlayerManager extends Component {
         //已存在时，不重复添加
         let node = this._nodePlayers.get(info.gameInfo.playerId);
         if (!node) {
-            node = instantiate(this.prefabPlayer);
+            node = instantiate(this.getPlayerPrefab());
             this.panelPlayer.addChild(node);
             this._nodePlayers.set(info.gameInfo.playerId, node);
         }
         
         let playerCom = node.getComponent(Player)
-        node.setPosition(CommonFunc.positionInfo2Vec3(info.gameInfo.pos));
-        playerCom.setImg(CommonFunc.colorInfo2Cc(info.gameInfo.color))
-        playerCom.setName(info.gameInfo.playerId.toString());
-        playerCom.setSelfTag(info.gameInfo.playerId == GameModel._myPlayerId);
+        playerCom.setPlayerId(info.gameInfo.playerId);
+        playerCom.refreshView();
+        playerCom.setPosition(info.gameInfo.pos);//初始位置
 
         this._curInputKey.set(info.gameInfo.playerId, new GameDef.GameKeyInfo())
     }
@@ -133,7 +141,8 @@ export class PlayerManager extends Component {
             return;
         }
 
-        node.removeFromParent();
+        this._nodePlayers.delete(id);
+        node.destroy();
     }
 
     evQuitRoom(id: (number|Long), bSelf: boolean) {
@@ -148,39 +157,7 @@ export class PlayerManager extends Component {
         this.removePlayer(id);
     }
 
-    evLogicUpdateBefore() {
-        //设置当前位置
-        for (let plr of GameModel._players.values()) {
-            let node = this._nodePlayers.get(plr.gameInfo.playerId);
-            if (!node) {
-                continue;
-            }
-
-            //Tween.stopAllByTarget(node);
-            //node.setPosition(CommonFunc.positionInfo2Vec3(plr.gameInfo.pos));
-        }
-    }
-
     evLogicUpdateAfter() {
-        let frameSec = 1 / (GameModel._gameCfg.frameCount - 1);
-
-        for (let plr of GameModel._players.values()) {
-            let node = this._nodePlayers.get(plr.gameInfo.playerId);
-            if (!node) {
-                continue;
-            }
-
-            let curPos = node.getPosition();
-            let nextPos = CommonFunc.positionInfo2Vec3(plr.gameInfo.pos);
-
-            if (curPos.x != nextPos.x || curPos.y != nextPos.y) {
-                tween(node)
-                .to(frameSec, {position: nextPos})
-                .start();
-            }
-        }
-
-
         this.doUploadInput();
     }
 
